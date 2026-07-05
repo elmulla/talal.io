@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تتكيّف لتعيش — رحلة المستكشف الصغير</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sand:#FFF6E6;
+    --sand-deep:#F6E6C4;
+    --ink:#3B2E27;
+    --teal:#0F5C5C;
+    --teal-light:#7FC8D9;
+    --gold:#E8A33D;
+    --coral:#E85D4E;
+    --forest:#3E7C59;
+    --white:#FFFFFF;
+    --shadow: 0 10px 26px rgba(59,46,39,0.15);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Cairo',sans-serif;
+    background: radial-gradient(circle at 20% 10%, #FFEFD1 0%, var(--sand) 45%, var(--sand-deep) 100%);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Baloo Bhaijaan 2',sans-serif;}
+
+  /* ===== App shell ===== */
+  #app{
+    max-width:920px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:14px 16px 90px;
+  }
+
+  /* ===== Trail / progress map (signature element) ===== */
+  .trail-wrap{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(180deg, var(--sand) 70%, transparent);
+    padding:10px 0 16px;
+  }
+  .trail{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    background:var(--white);
+    border-radius:999px;
+    padding:10px 14px;
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  .trail::-webkit-scrollbar{display:none;}
+  .step{
+    flex:0 0 auto;
+    width:30px; height:30px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+    background:#EFE6D8;
+    color:#B7A88E;
+    border:2px solid transparent;
+    transition:.35s;
+    position:relative;
+  }
+  .step.done{background:var(--forest); color:#fff;}
+  .step.current{background:var(--coral); color:#fff; transform:scale(1.18); box-shadow:0 0 0 4px rgba(232,93,78,.25);}
+  .step-line{flex:0 0 14px; height:3px; background:#EFE6D8; border-radius:2px;}
+  .step-line.done{background:var(--forest);}
+
+  /* ===== Screens ===== */
+  .screen{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    animation:fadeUp .45s ease;
+  }
+  .screen.active{display:flex;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+  .card{
+    background:var(--white);
+    border-radius:26px;
+    box-shadow:var(--shadow);
+    padding:28px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:6px;
+    font-weight:800; font-size:13px; letter-spacing:.5px;
+    color:var(--teal); background:#E4F3F1; border-radius:999px;
+    padding:6px 14px; margin-bottom:12px;
+  }
+  h1.title{font-size:clamp(28px,6vw,44px); margin:0 0 6px; color:var(--teal);}
+  h2.subtitle{font-size:clamp(20px,4vw,28px); margin:0 0 16px; color:var(--coral);}
+  p.lead{font-size:18px; line-height:1.9; margin:0 0 14px;}
+
+  /* ===== Buttons ===== */
+  .btn{
+    font-family:'Baloo Bhaijaan 2',sans-serif;
+    font-size:17px; font-weight:700;
+    border:none; border-radius:999px;
+    padding:13px 26px;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-primary{background:var(--coral); color:#fff; box-shadow:0 6px 0 #B8402F;}
+  .btn-primary:hover{box-shadow:0 4px 0 #B8402F; transform:translateY(2px);}
+  .btn-secondary{background:var(--white); color:var(--teal); border:2px solid var(--teal); }
+  .btn-ghost{background:transparent; color:#8a7a67; font-weight:700;}
+  .btn-gold{background:var(--gold); color:#fff; box-shadow:0 6px 0 #B5771F;}
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none;}
+
+  .nav-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:22px; gap:10px;
+  }
+
+  /* ===== Cover ===== */
+  .cover{align-items:center; text-align:center; justify-content:center; min-height:70vh;}
+  .cover .mascot{font-size:90px; margin-bottom:6px; animation:bob 2.6s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-10px) rotate(3deg);}}
+  .cover h1{font-size:clamp(34px,8vw,58px); color:var(--teal); margin:6px 0 4px;}
+  .cover .unit{color:var(--coral); font-weight:800; font-size:18px;}
+  .cover-badges{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:20px 0;}
+  .pill{background:var(--white); border-radius:999px; padding:8px 16px; font-weight:700; font-size:14px; box-shadow:var(--shadow); color:var(--teal);}
+
+  /* ===== Objective chips ===== */
+  .obj-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:10px;}
+  .obj-chip{
+    background:#F3F8F6; border-radius:18px; padding:16px; display:flex; gap:10px; align-items:flex-start;
+    border:2px dashed #cfe4dc;
+  }
+  .obj-chip .ico{font-size:26px;}
+  .obj-chip .txt{font-size:15px; line-height:1.6; font-weight:600;}
+
+  /* ===== Hook / puzzle ===== */
+  .puzzle-img{font-size:80px; text-align:center; margin:10px 0;}
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;}
+  @media(max-width:520px){.choice-grid{grid-template-columns:1fr;}}
+  .choice-btn{
+    background:#F8F1E3; border:2px solid #EAD9AF; border-radius:16px;
+    padding:14px; font-size:16px; font-weight:700; cursor:pointer; text-align:right;
+    transition:.2s;
+  }
+  .choice-btn:hover{background:#F1E3C4;}
+  .choice-btn.correct{background:#DFF3E4; border-color:var(--forest); color:var(--forest);}
+  .choice-btn.wrong{background:#FBE3E0; border-color:var(--coral); color:var(--coral);}
+  .feedback-box{margin-top:14px; padding:14px 16px; border-radius:14px; font-weight:700; display:none;}
+  .feedback-box.show{display:block;}
+  .feedback-box.good{background:#DFF3E4; color:var(--forest);}
+  .feedback-box.bad{background:#FBE3E0; color:var(--coral);}
+
+  /* ===== Station tabs (shape/breath/move) ===== */
+  .station-head{display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+  .station-head .emoji{font-size:40px;}
+  .flip-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:16px;}
+  .flip-card{
+    perspective:1000px; height:170px; cursor:pointer;
+  }
+  .flip-inner{
+    position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d;
+  }
+  .flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+  .flip-face{
+    position:absolute; inset:0; border-radius:16px; backface-visibility:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:10px; text-align:center;
+  }
+  .flip-front{background:var(--sand-deep); border:2px solid #E3C98B;}
+  .flip-front .emoji{font-size:46px;}
+  .flip-front .name{font-weight:800; margin-top:6px; font-size:15px;}
+  .flip-back{background:var(--teal); color:#fff; transform:rotateY(180deg); font-size:13px; line-height:1.6; font-weight:600;}
+  .flip-hint{font-size:11px; color:#a3906c; margin-top:6px; text-align:center; font-weight:700;}
+
+  /* ===== Matching game ===== */
+  .match-wrap{display:flex; gap:20px; flex-wrap:wrap; margin-top:12px;}
+  .match-col{flex:1; min-width:150px;}
+  .match-col h4{margin:0 0 8px; font-size:14px; color:#8a7a67;}
+  .animal-tile{
+    background:#F8F1E3; border:2px solid #EAD9AF; border-radius:14px; padding:10px 12px;
+    display:flex; align-items:center; gap:8px; margin-bottom:8px; cursor:pointer; font-weight:700; font-size:14px;
+    transition:.2s;
+  }
+  .animal-tile.selected{border-color:var(--coral); background:#FBE9E5;}
+  .animal-tile.placed{opacity:.35; cursor:default;}
+  .category-drop{
+    border:3px dashed #cfe4dc; border-radius:16px; padding:12px; min-height:90px; margin-bottom:10px;
+    background:#F3F8F6;
+  }
+  .category-drop h5{margin:0 0 8px; font-size:14px; color:var(--teal);}
+  .category-drop.hit{background:#DFF3E4; border-color:var(--forest);}
+  .placed-item{display:inline-block; background:var(--forest); color:#fff; border-radius:999px; padding:5px 12px; font-size:13px; margin:3px; font-weight:700;}
+
+  /* ===== Quiz ===== */
+  .score-badge{position:absolute; top:20px; left:20px; background:var(--gold); color:#fff; border-radius:999px; padding:6px 14px; font-weight:800; font-size:14px;}
+  .q-progress{font-size:13px; font-weight:700; color:#8a7a67; margin-bottom:6px;}
+
+  /* ===== Creative challenge ===== */
+  label.field-label{display:block; font-weight:800; margin:14px 0 6px; color:var(--teal); font-size:15px;}
+  select.field, textarea.field, input.field{
+    width:100%; border:2px solid #EAD9AF; border-radius:14px; padding:12px 14px;
+    font-family:'Cairo',sans-serif; font-size:15px; background:#FFFDF8;
+  }
+  textarea.field{min-height:90px; resize:vertical;}
+  .creative-preview{
+    margin-top:18px; background:linear-gradient(135deg,#FFF6E6,#FDEBD3); border:2px dashed var(--gold);
+    border-radius:18px; padding:16px; font-size:15px; line-height:1.8;
+  }
+
+  /* ===== Final screen ===== */
+  .badge-circle{
+    width:130px; height:130px; border-radius:50%; margin:0 auto 14px;
+    background:conic-gradient(var(--gold),var(--coral),var(--forest),var(--teal),var(--gold));
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+  }
+  .badge-inner{width:104px; height:104px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:44px;}
+
+  .footer-note{text-align:center; font-size:13px; color:#a3906c; margin-top:26px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="trail-wrap">
+    <div class="trail" id="trail"></div>
+  </div>
+
+  <!-- 0: TITLE / PROGRAM INFO -->
+  <section class="screen active" data-screen="0">
+    <div class="cover">
+      <div class="mascot">🎓</div>
+      <span class="unit">برنامج الدراسات العليا</span>
+      <h1 style="font-size:clamp(24px,6vw,38px)">قسم تربية الطفل</h1>
+      <p class="lead" style="max-width:480px">عملي طرائق تدريس</p>
+      <div class="cover-badges">
+        <span class="pill">👨‍🎓 إعداد وتصميم الطالب: طلال الملا</span>
+        <span class="pill">👩‍🏫 إشراف: الدكتورة ريم نعيمي</span>
+        <span class="pill">🗓️ العام الدراسي ٢٠٢٦-٢٠٢٧</span>
+      </div>
+      <button class="btn btn-primary" onclick="goTo(1)">التالي ‹</button>
+    </div>
+  </section>
+
+  <!-- 1: COVER -->
+  <section class="screen" data-screen="1">
+    <div class="cover">
+      <div class="mascot">🐫</div>
+      <span class="unit">الوحدة الأولى: بيئتي تدعمني</span>
+      <h1>تتكيّف لتعيش</h1>
+      <p class="lead" style="max-width:480px">رحلة استكشاف شيّقة نتعرّف فيها كيف تساعد كل حيوانٍ صفاتُه الخاصة على العيش في بيئته!</p>
+      <div class="cover-badges">
+        <span class="pill">🦎 الشكل</span>
+        <span class="pill">🐟 التنفّس</span>
+        <span class="pill">🐇 الحركة</span>
+      </div>
+      <button class="btn btn-primary" onclick="goTo(2)">ابدأ الرحلة ‹</button>
+    </div>
+  </section>
+
+  <!-- 2: WELCOME + OBJECTIVES -->
+  <section class="screen" data-screen="2">
+    <div class="card">
+      <span class="eyebrow">🎯 قبل أن ننطلق</span>
+      <h2 class="subtitle">أهلًا بك أيها المستكشف الصغير!</h2>
+      <p class="lead">في نهاية رحلتنا، ستكون قادرًا على:</p>
+      <div class="obj-grid">
+        <div class="obj-chip"><span class="ico">📖</span><span class="txt">تعرف ما معنى "التكيّف"</span></div>
+        <div class="obj-chip"><span class="ico">🔍</span><span class="txt">تكتشف طرائق التكيّف الثلاث: الشكل، التنفس، الحركة</span></div>
+        <div class="obj-chip"><span class="ico">🧩</span><span class="txt">تصنّف الحيوانات حسب طريقة تكيّفها</span></div>
+        <div class="obj-chip"><span class="ico">🎨</span><span class="txt">تصمّم حيوانك الخاص المتكيّف!</span></div>
+      </div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(1)">› السابق</button><button class="btn btn-primary" onclick="goTo(3)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 3: HOOK PUZZLE -->
+  <section class="screen" data-screen="3">
+    <div class="card">
+      <span class="eyebrow">🧐 لغز الانطلاق</span>
+      <h2 class="subtitle">لماذا يسير الجمل في الرمال الحارّة بسهولة؟</h2>
+      <div class="puzzle-img">🐫🏜️</div>
+      <div class="choice-grid" id="hookChoices">
+        <button class="choice-btn" data-correct="0" onclick="checkHook(this)">لأنه لا يشعر بالحرارة أبدًا</button>
+        <button class="choice-btn" data-correct="1" onclick="checkHook(this)">لأن قدميه (خُفّيه) عريضتان تمنعانه من الغرق في الرمل</button>
+        <button class="choice-btn" data-correct="0" onclick="checkHook(this)">لأنه يمشي على أطراف أصابعه فقط</button>
+        <button class="choice-btn" data-correct="0" onclick="checkHook(this)">لأن الرمل يكون بردًا دائمًا</button>
+      </div>
+      <div class="feedback-box" id="hookFeedback"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(2)">› السابق</button><button class="btn btn-primary" onclick="goTo(4)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 4: WHAT IS ADAPTATION -->
+  <section class="screen" data-screen="4">
+    <div class="card">
+      <span class="eyebrow">💡 المفهوم</span>
+      <h2 class="subtitle">ما هو "التكيّف"؟</h2>
+      <p class="lead"><strong>التكيّف</strong> هو أن يمتلك الحيوان صفةً خاصة في جسمه أو سلوكه تساعده على العيش والبقاء في بيئته، مهما كانت هذه البيئة حارّة أو باردة أو رطبة.</p>
+      <p class="lead">تذكّر خُفّ الجمل العريض في اللغز السابق؟ هذا مثال رائع على التكيّف! والآن دعنا نكتشف طرائق التكيّف الثلاث في محطات قادمة 👇</p>
+      <div class="obj-grid">
+        <div class="obj-chip"><span class="ico">🦎</span><span class="txt"><strong>الشكل</strong> — شكل الجسم يساعد على العيش</span></div>
+        <div class="obj-chip"><span class="ico">🐟</span><span class="txt"><strong>التنفّس</strong> — طريقة أخذ الهواء أو الأكسجين</span></div>
+        <div class="obj-chip"><span class="ico">🐇</span><span class="txt"><strong>الحركة</strong> — طريقة الجري أو القفز أو الهروب</span></div>
+      </div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(3)">› السابق</button><button class="btn btn-primary" onclick="goTo(5)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 5: STATION SHAPE -->
+  <section class="screen" data-screen="5">
+    <div class="card">
+      <div class="station-head"><span class="emoji">🦎</span><h2 class="subtitle" style="margin:0">محطة ١: التكيّف بالشكل</h2></div>
+      <p class="lead">انقر كل بطاقة لتكتشف سرّها!</p>
+      <div class="flip-grid" id="flipShape"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(4)">› السابق</button><button class="btn btn-primary" onclick="goTo(6)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 6: STATION BREATHING -->
+  <section class="screen" data-screen="6">
+    <div class="card">
+      <div class="station-head"><span class="emoji">🐟</span><h2 class="subtitle" style="margin:0">محطة ٢: التكيّف بالتنفّس</h2></div>
+      <p class="lead">انقر كل بطاقة لتكتشف سرّها!</p>
+      <div class="flip-grid" id="flipBreath"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(5)">› السابق</button><button class="btn btn-primary" onclick="goTo(7)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 7: STATION MOVEMENT -->
+  <section class="screen" data-screen="7">
+    <div class="card">
+      <div class="station-head"><span class="emoji">🐇</span><h2 class="subtitle" style="margin:0">محطة ٣: التكيّف بالحركة</h2></div>
+      <p class="lead">انقر كل بطاقة لتكتشف سرّها!</p>
+      <div class="flip-grid" id="flipMove"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(6)">› السابق</button><button class="btn btn-primary" onclick="goTo(8)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 8: MATCHING GAME -->
+  <section class="screen" data-screen="8">
+    <div class="card">
+      <span class="eyebrow">🧩 نشاط تفاعلي</span>
+      <h2 class="subtitle">صنّف كل حيوان في بيته الصحيح</h2>
+      <p class="lead">انقر على اسم الحيوان، ثم انقر على الفئة المناسبة له.</p>
+      <div class="match-wrap">
+        <div class="match-col">
+          <h4>الحيوانات</h4>
+          <div id="animalTiles"></div>
+        </div>
+        <div class="match-col" style="flex:1.4;">
+          <div class="category-drop" data-cat="شكل"><h5>🦎 الشكل</h5><div class="placed-list"></div></div>
+          <div class="category-drop" data-cat="تنفس"><h5>🐟 التنفّس</h5><div class="placed-list"></div></div>
+          <div class="category-drop" data-cat="حركة"><h5>🐇 الحركة</h5><div class="placed-list"></div></div>
+        </div>
+      </div>
+      <div class="feedback-box" id="matchFeedback"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(7)">› السابق</button><button class="btn btn-primary" id="matchNext" onclick="goTo(9)" disabled>التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 9: EVALUATION QUESTION -->
+  <section class="screen" data-screen="9">
+    <div class="card">
+      <span class="eyebrow">🌟 فكّر أكثر</span>
+      <h2 class="subtitle">لماذا يُعدّ تلوّن الحرباء وسيلة حماية ناجحة؟</h2>
+      <div class="puzzle-img">🦎🍃</div>
+      <div class="choice-grid" id="evalChoices">
+        <button class="choice-btn" data-correct="0" onclick="checkEval(this)">لأن لونها يبقى ثابتًا دائمًا</button>
+        <button class="choice-btn" data-correct="1" onclick="checkEval(this)">لأنها تُصبح شبيهة بالبيئة المحيطة فلا يراها الأعداء بسهولة</button>
+        <button class="choice-btn" data-correct="0" onclick="checkEval(this)">لأنها تصدر صوتًا عاليًا لتخويف الأعداء</button>
+        <button class="choice-btn" data-correct="0" onclick="checkEval(this)">لأنها تسبح بسرعة كبيرة</button>
+      </div>
+      <div class="feedback-box" id="evalFeedback"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(8)">› السابق</button><button class="btn btn-primary" onclick="goTo(10)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 10: QUIZ -->
+  <section class="screen" data-screen="10">
+    <div class="card" id="quizCard">
+      <span class="score-badge">⭐ <span id="scoreVal">0</span>/5</span>
+      <span class="eyebrow">📝 اختبار سريع</span>
+      <div class="q-progress" id="qProgress">السؤال 1 من 5</div>
+      <h2 class="subtitle" id="qText" style="min-height:60px;"></h2>
+      <div class="choice-grid" id="qChoices"></div>
+      <div class="feedback-box" id="qFeedback"></div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(9)">› السابق</button><button class="btn btn-primary" id="qNextBtn" onclick="nextQuizQ()" disabled>التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 11: CREATIVE CHALLENGE -->
+  <section class="screen" data-screen="11">
+    <div class="card">
+      <span class="eyebrow">🎨 تحدّي الإبداع</span>
+      <h2 class="subtitle">صمّم حيوانك الخيالي المتكيّف!</h2>
+      <label class="field-label">اسم حيوانك الخيالي</label>
+      <input class="field" id="cName" placeholder="مثال: القط الثلجي الطائر">
+      <label class="field-label">أين يعيش؟</label>
+      <select class="field" id="cEnv">
+        <option value="القطب المتجمّد ❄️">القطب المتجمّد ❄️</option>
+        <option value="الصحراء ☀️">الصحراء ☀️</option>
+        <option value="الغابة 🌳">الغابة 🌳</option>
+        <option value="أعماق البحر 🌊">أعماق البحر 🌊</option>
+      </select>
+      <label class="field-label">كيف يتكيّف مع بيئته؟ (الشكل / التنفس / الحركة)</label>
+      <textarea class="field" id="cDesc" placeholder="مثال: يملك فراءً كثيفًا يحميه من البرد، وأرجلًا عريضة تساعده على السير على الثلج..."></textarea>
+      <div class="creative-preview" id="cPreview">✏️ ابدأ الكتابة أعلاه ليظهر ملخّص تصميمك هنا…</div>
+      <div class="nav-row"><button class="btn btn-ghost" onclick="goTo(10)">› السابق</button><button class="btn btn-primary" onclick="goTo(12)">التالي ‹</button></div>
+    </div>
+  </section>
+
+  <!-- 12: CLOSING -->
+  <section class="screen" data-screen="12">
+    <div class="card" style="text-align:center;">
+      <div class="badge-circle"><div class="badge-inner">🏆</div></div>
+      <h2 class="subtitle" style="color:var(--forest)">أنت الآن "خبير تكيّف" صغير!</h2>
+      <p class="lead">أنجزت رحلة اليوم بنجاح، وتعرّفت كيف تساعد صفات الحيوانات المختلفة على العيش في بيئاتها.</p>
+      <div class="obj-grid" style="text-align:right">
+        <div class="obj-chip"><span class="ico">🏠</span><span class="txt"><strong>الواجب المنزلي:</strong> ارسم حيوانًا تختاره، واكتب جملة توضّح كيف يتكيّف مع بيئته.</span></div>
+        <div class="obj-chip"><span class="ico">⭐</span><span class="txt">نتيجتك في الاختبار السريع: <span id="finalScore">0</span> من 5</span></div>
+      </div>
+      <div class="nav-row" style="justify-content:center;">
+        <button class="btn btn-secondary" onclick="restartAll()">↺ أعد الرحلة</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">تصميم درس تفاعلي — "تتكيّف لتعيش" · الصف الثالث الأساسي · العلوم العامة</div>
+</div>
+
+<script>
+const TOTAL = 13;
+let current = 0;
+
+function buildTrail(){
+  const trail = document.getElementById('trail');
+  trail.innerHTML = '';
+  const icons = ['🎓','🏁','🎯','❓','💡','🦎','🐟','🐇','🧩','🌟','📝','🎨','🏆'];
+  for(let i=0;i<TOTAL;i++){
+    const step = document.createElement('div');
+    step.className = 'step';
+    step.id = 'step-'+i;
+    step.textContent = icons[i];
+    step.onclick = ()=> { if(i<=maxReached) goTo(i); };
+    trail.appendChild(step);
+    if(i<TOTAL-1){
+      const line = document.createElement('div');
+      line.className='step-line';
+      line.id='line-'+i;
+      trail.appendChild(line);
+    }
+  }
+}
+let maxReached = 0;
+
+function goTo(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.screen[data-screen="'+n+'"]').classList.add('active');
+  current = n;
+  if(n>maxReached) maxReached = n;
+  updateTrail();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateTrail(){
+  for(let i=0;i<TOTAL;i++){
+    const st = document.getElementById('step-'+i);
+    st.classList.remove('done','current');
+    if(i<current) st.classList.add('done');
+    if(i===current) st.classList.add('current');
+    if(i<TOTAL-1){
+      const ln = document.getElementById('line-'+i);
+      ln.classList.toggle('done', i<current);
+    }
+  }
+}
+
+/* ---------- Hook question ---------- */
+function checkHook(btn){
+  const all = document.querySelectorAll('#hookChoices .choice-btn');
+  all.forEach(b=>b.disabled=true);
+  const fb = document.getElementById('hookFeedback');
+  if(btn.dataset.correct==='1'){
+    btn.classList.add('correct');
+    fb.textContent = '✅ صحيح! خُفّ الجمل العريض يمنعه من الغرق في الرمل الناعم.';
+    fb.className='feedback-box show good';
+  } else {
+    btn.classList.add('wrong');
+    document.querySelector('#hookChoices [data-correct="1"]').classList.add('correct');
+    fb.textContent = '❌ ليس هذا السبب. الإجابة الصحيحة: خُفّ الجمل العريض يمنعه من الغرق في الرمل.';
+    fb.className='feedback-box show bad';
+  }
+}
+
+/* ---------- Evaluation question ---------- */
+function checkEval(btn){
+  const all = document.querySelectorAll('#evalChoices .choice-btn');
+  all.forEach(b=>b.disabled=true);
+  const fb = document.getElementById('evalFeedback');
+  if(btn.dataset.correct==='1'){
+    btn.classList.add('correct');
+    fb.textContent = '✅ صحيح! هذا يسمّى "التمويه"، وهو يخفي الحرباء عن أعدائها.';
+    fb.className='feedback-box show good';
+  } else {
+    btn.classList.add('wrong');
+    document.querySelector('#evalChoices [data-correct="1"]').classList.add('correct');
+    fb.textContent = '❌ فكّر مجددًا. الحرباء تتلوّن لتشبه محيطها فلا يراها أعداؤها.';
+    fb.className='feedback-box show bad';
+  }
+}
+
+/* ---------- Flip cards data ---------- */
+const shapeCards = [
+  {emoji:'🐫', name:'الجمل', back:'خُفّ عريض يمنعه من الغرق في رمال الصحراء الناعمة.'},
+  {emoji:'🐻‍❄️', name:'الدب القطبي', back:'فراء أبيض سميك يحميه من برد القطب الشديد.'},
+  {emoji:'🦆', name:'البط', back:'أقدام مكفّفة (بها جلد بين الأصابع) تساعده على السباحة.'},
+  {emoji:'🦎', name:'الحرباء', back:'يتغيّر لون جلدها لتتناسب مع لون البيئة المحيطة.'},
+];
+const breathCards = [
+  {emoji:'🐟', name:'السمكة', back:'تتنفّس بالخياشيم لتأخذ الأكسجين من الماء.'},
+  {emoji:'🐢', name:'السلحفاة البرّية', back:'تتنفّس بالرئتين مثلنا، فهي تعيش على الأرض.'},
+  {emoji:'🐸', name:'الشرغوف (يرقة الضفدع)', back:'يتنفّس بالخياشيم أولًا في الماء، ثم يطوّر رئتين حين يكبر.'},
+];
+const moveCards = [
+  {emoji:'🐇', name:'الأرنب البرّي', back:'أرجل خلفية قوية تساعده على القفز والجري السريع هربًا من الخطر.'},
+  {emoji:'🐟', name:'السمكة', back:'جسمها الانسيابي (المدبّب) يساعدها على السباحة بسرعة وسهولة.'},
+  {emoji:'🐢', name:'السلحفاة', back:'تختبئ داخل صدفتها الصلبة عند شعورها بالخطر لحماية نفسها.'},
+];
+
+function renderFlip(containerId, data){
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML='';
+  data.forEach((item,idx)=>{
+    const card = document.createElement('div');
+    card.className='flip-card';
+    card.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name}</div>
+          <div class="flip-hint">اضغط للاكتشاف 👆</div>
+        </div>
+        <div class="flip-face flip-back">${item.back}</div>
+      </div>`;
+    card.onclick = ()=> card.classList.toggle('flipped');
+    wrap.appendChild(card);
+  });
+}
+
+/* ---------- Matching game ---------- */
+const matchAnimals = [
+  {name:'🐫 الجمل', cat:'شكل'},
+  {name:'🦆 البط', cat:'شكل'},
+  {name:'🐟 السمكة', cat:'تنفس'},
+  {name:'🐢 السلحفاة البرّية', cat:'تنفس'},
+  {name:'🐇 الأرنب', cat:'حركة'},
+  {name:'🐸 الشرغوف', cat:'تنفس'},
+];
+let selectedTile = null;
+let placedCount = 0;
+
+function renderMatch(){
+  const wrap = document.getElementById('animalTiles');
+  wrap.innerHTML='';
+  matchAnimals.forEach((a,idx)=>{
+    const tile = document.createElement('div');
+    tile.className='animal-tile';
+    tile.textContent = a.name;
+    tile.dataset.idx = idx;
+    tile.onclick = ()=> selectTile(tile);
+    wrap.appendChild(tile);
+  });
+  document.querySelectorAll('.category-drop').forEach(drop=>{
+    drop.onclick = ()=> dropOn(drop);
+  });
+}
+function selectTile(tile){
+  if(tile.classList.contains('placed')) return;
+  document.querySelectorAll('.animal-tile').forEach(t=>t.classList.remove('selected'));
+  tile.classList.add('selected');
+  selectedTile = tile;
+}
+function dropOn(drop){
+  if(!selectedTile) return;
+  const idx = selectedTile.dataset.idx;
+  const animal = matchAnimals[idx];
+  const fb = document.getElementById('matchFeedback');
+  if(animal.cat === drop.dataset.cat){
+    selectedTile.classList.add('placed');
+    selectedTile.classList.remove('selected');
+    drop.classList.add('hit');
+    const span = document.createElement('span');
+    span.className='placed-item';
+    span.textContent = animal.name;
+    drop.querySelector('.placed-list').appendChild(span);
+    placedCount++;
+    fb.textContent = '✅ إجابة صحيحة! تصنيف رائع.';
+    fb.className='feedback-box show good';
+    setTimeout(()=>drop.classList.remove('hit'),500);
+    if(placedCount === matchAnimals.length){
+      document.getElementById('matchNext').disabled = false;
+      fb.textContent = '🎉 أحسنت! صنّفت جميع الحيوانات بنجاح.';
+    }
+  } else {
+    fb.textContent = '❌ ليست هذه الفئة الصحيحة، حاول مجددًا.';
+    fb.className='feedback-box show bad';
+  }
+  selectedTile = null;
+}
+
+/* ---------- Quiz ---------- */
+const quizData = [
+  {q:'ما اسم العضو الذي تتنفّس السمكة عن طريقه؟', choices:['الرئتان','الخياشيم','الجلد فقط'], correct:1},
+  {q:'لماذا يمتلك البط أقدامًا مكفّفة؟', choices:['لتساعده على السباحة','لتساعده على الطيران بسرعة','ليصعد الجبال'], correct:0},
+  {q:'كيف تحمي السلحفاة نفسها عند الخطر؟', choices:['تُصدر صوتًا عاليًا','تختبئ داخل صدفتها','تُغيّر لون جلدها'], correct:1},
+  {q:'ما الذي يساعد الأرنب البرّي على الهروب السريع؟', choices:['أرجله الخلفية القوية','خُفّه العريض','خياشيمه'], correct:0},
+  {q:'ماذا نسمّي الصفة التي تساعد الحيوان على العيش في بيئته؟', choices:['التكاثر','التكيّف','التنفّس'], correct:1},
+];
+let qIndex = 0;
+let score = 0;
+
+function renderQuiz(){
+  qIndex = 0; score = 0;
+  document.getElementById('scoreVal').textContent = score;
+  loadQuizQ();
+}
+function loadQuizQ(){
+  const item = quizData[qIndex];
+  document.getElementById('qProgress').textContent = `السؤال ${qIndex+1} من ${quizData.length}`;
+  document.getElementById('qText').textContent = item.q;
+  const cWrap = document.getElementById('qChoices');
+  cWrap.innerHTML='';
+  item.choices.forEach((c,idx)=>{
+    const b = document.createElement('button');
+    b.className='choice-btn';
+    b.textContent = c;
+    b.onclick = ()=> answerQuiz(idx, item.correct, b);
+    cWrap.appendChild(b);
+  });
+  document.getElementById('qFeedback').className='feedback-box';
+  document.getElementById('qNextBtn').disabled = true;
+}
+function answerQuiz(idx, correctIdx, btn){
+  const all = document.querySelectorAll('#qChoices .choice-btn');
+  all.forEach(b=>b.disabled=true);
+  const fb = document.getElementById('qFeedback');
+  if(idx===correctIdx){
+    btn.classList.add('correct');
+    score++;
+    document.getElementById('scoreVal').textContent = score;
+    fb.textContent='✅ إجابة صحيحة!';
+    fb.className='feedback-box show good';
+  } else {
+    btn.classList.add('wrong');
+    all[correctIdx].classList.add('correct');
+    fb.textContent='❌ ليست هذه الإجابة الصحيحة.';
+    fb.className='feedback-box show bad';
+  }
+  document.getElementById('qNextBtn').disabled=false;
+}
+function nextQuizQ(){
+  qIndex++;
+  if(qIndex < quizData.length){
+    loadQuizQ();
+  } else {
+    document.getElementById('finalScore').textContent = score;
+    goTo(11);
+  }
+}
+
+/* ---------- Creative challenge ---------- */
+function updatePreview(){
+  const name = document.getElementById('cName').value.trim();
+  const env = document.getElementById('cEnv').value;
+  const desc = document.getElementById('cDesc').value.trim();
+  const box = document.getElementById('cPreview');
+  if(!name && !desc){
+    box.textContent = '✏️ ابدأ الكتابة أعلاه ليظهر ملخّص تصميمك هنا…';
+    return;
+  }
+  box.innerHTML = `<strong>🐾 ${name || 'حيوانك الخيالي'}</strong><br>🌍 يعيش في: ${env}<br>💡 طريقة تكيّفه: ${desc || '...'}`;
+}
+
+/* ---------- Init ---------- */
+function restartAll(){
+  document.querySelectorAll('.animal-tile').forEach(t=>{});
+  location.reload();
+}
+
+buildTrail();
+renderFlip('flipShape', shapeCards);
+renderFlip('flipBreath', breathCards);
+renderFlip('flipMove', moveCards);
+renderMatch();
+renderQuiz();
+document.getElementById('cName').addEventListener('input', updatePreview);
+document.getElementById('cEnv').addEventListener('change', updatePreview);
+document.getElementById('cDesc').addEventListener('input', updatePreview);
+goTo(0);
+</script>
+</body>
+</html>

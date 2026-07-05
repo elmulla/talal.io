@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>لعبة: كيف تتكيّف الحيوانات؟</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;900&family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky1:#dff3ff;
+    --sky2:#aee3ff;
+    --ink:#1b3a4b;
+    --ink-soft:#4a6a78;
+    --white:#ffffff;
+    --shape:#ffcf56;
+    --shape-dark:#e0a600;
+    --breath:#6fd6a0;
+    --breath-dark:#1f9d63;
+    --move:#7cc4ff;
+    --move-dark:#1f7fd1;
+    --wrong:#ff6b6b;
+    --shadow: 0 10px 24px rgba(20,60,80,.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    font-family:'Cairo', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, #fff8dd 0%, transparent 40%),
+      radial-gradient(circle at 85% 90%, #d6f7ff 0%, transparent 45%),
+      linear-gradient(180deg, var(--sky1), var(--sky2) 60%, #cdeeff 100%);
+    color:var(--ink);
+    overflow-x:hidden;
+    padding-bottom:20px;
+  }
+
+  /* clouds */
+  .cloud{position:absolute; opacity:.8; filter:blur(.3px); pointer-events:none;}
+  .cloud svg{display:block;}
+  .cloud.c1{top:18px; left:6%; width:90px; animation: drift 40s linear infinite;}
+  .cloud.c2{top:60px; right:8%; width:70px; animation: drift 55s linear infinite reverse;}
+  @keyframes drift{ from{transform:translateX(0);} to{transform:translateX(30px);} }
+
+  header{
+    text-align:center;
+    padding:22px 16px 10px;
+    position:relative;
+    z-index:2;
+  }
+  header h1{
+    font-family:'Baloo 2', 'Cairo', sans-serif;
+    font-weight:700;
+    font-size:clamp(22px, 5vw, 32px);
+    margin:0 0 4px;
+    color:var(--ink);
+    text-shadow: 2px 2px 0 rgba(255,255,255,.6);
+  }
+  header p{margin:0; font-size:15px; color:var(--ink-soft); font-weight:500;}
+
+  .scoreboard{
+    position:fixed; top:14px; left:14px; z-index:20;
+    background:var(--white);
+    border-radius:16px;
+    padding:8px 14px;
+    box-shadow:var(--shadow);
+    font-weight:700;
+    font-size:15px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .scoreboard .star{color:var(--shape-dark); font-size:18px;}
+
+  .restart-btn{
+    position:fixed; top:14px; right:14px; z-index:20;
+    background:var(--white);
+    border:none;
+    border-radius:16px;
+    padding:8px 16px;
+    box-shadow:var(--shadow);
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    transition:transform .15s ease;
+  }
+  .restart-btn:hover{transform:translateY(-2px);}
+  .restart-btn:active{transform:translateY(0);}
+
+  /* mascot */
+  .mascot-row{
+    display:flex; align-items:flex-end; justify-content:center; gap:14px;
+    margin:6px auto 14px; position:relative; z-index:2;
+  }
+  .mascot{
+    font-size:56px;
+    filter: drop-shadow(0 6px 6px rgba(0,0,0,.15));
+    transition: transform .25s ease, filter .3s ease;
+    transform-origin:bottom center;
+  }
+  .mascot.happy{ animation: bounce .6s ease; }
+  .mascot.sad{ animation: shake .5s ease; }
+  @keyframes bounce{ 0%{transform:scale(1);} 30%{transform:scale(1.25) rotate(-6deg);} 60%{transform:scale(1.05) rotate(4deg);} 100%{transform:scale(1);} }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
+
+  .speech{
+    position:relative;
+    background:var(--white);
+    border-radius:18px;
+    padding:10px 16px;
+    font-weight:700;
+    font-size:15px;
+    max-width:260px;
+    box-shadow:var(--shadow);
+    min-height:20px;
+    text-align:center;
+  }
+  .speech:after{
+    content:"";
+    position:absolute;
+    bottom:-9px; right:26px;
+    border-width:10px 8px 0 8px;
+    border-style:solid;
+    border-color:var(--white) transparent transparent transparent;
+  }
+
+  main{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 16px;
+    position:relative;
+    z-index:2;
+  }
+
+  .board-label{
+    text-align:center;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin:6px 0 12px;
+    font-size:14px;
+  }
+
+  .cards{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:22px;
+    min-height:118px;
+  }
+
+  .card{
+    background:var(--white);
+    border-radius:18px;
+    width:104px;
+    padding:10px 6px 8px;
+    text-align:center;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    border:3px solid transparent;
+    transition: transform .15s ease, border-color .15s ease, opacity .3s ease;
+    user-select:none;
+  }
+  .card .emoji{font-size:38px; display:block; line-height:1;}
+  .card .name{font-weight:700; font-size:13px; margin-top:4px; display:block; color:var(--ink);}
+  .card:hover{transform:translateY(-4px) scale(1.03);}
+  .card.selected{border-color:#ffb703; transform:translateY(-6px) scale(1.06); box-shadow:0 12px 20px rgba(255,183,3,.35);}
+  .card.placed{opacity:0; transform:scale(.3); pointer-events:none;}
+  .card.wrong-shake{animation: shake .45s ease;}
+
+  .baskets{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  .basket{
+    flex:1 1 220px;
+    max-width:280px;
+    border-radius:22px;
+    padding:16px 12px 18px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    border:3px dashed rgba(255,255,255,.7);
+    transition: transform .15s ease, filter .2s ease;
+    position:relative;
+  }
+  .basket:hover{transform:translateY(-3px);}
+  .basket:active{transform:translateY(0);}
+  .basket.pulse{animation: pulseB .5s ease;}
+  @keyframes pulseB{ 0%{transform:scale(1);} 40%{transform:scale(1.05);} 100%{transform:scale(1);} }
+
+  .basket.shape{background:linear-gradient(160deg,var(--shape),#ffe28a);}
+  .basket.breath{background:linear-gradient(160deg,var(--breath),#b6f1cf);}
+  .basket.move{background:linear-gradient(160deg,var(--move),#bfe3ff);}
+
+  .basket .b-icon{font-size:34px; display:block;}
+  .basket .b-title{font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; margin:4px 0 2px; color:var(--ink);}
+  .basket .b-sub{font-size:12px; color:var(--ink-soft); font-weight:600;}
+
+  .basket .placed-list{
+    display:flex; justify-content:center; gap:6px; margin-top:10px; flex-wrap:wrap; min-height:26px;
+  }
+  .basket .placed-list span{font-size:22px;}
+
+  .progress-wrap{
+    max-width:400px; margin:0 auto 18px;
+    background:rgba(255,255,255,.6);
+    border-radius:20px;
+    height:14px;
+    overflow:hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.08);
+  }
+  .progress-bar{
+    height:100%;
+    width:0%;
+    border-radius:20px;
+    background:linear-gradient(90deg,#ffd166,#6fd6a0,#7cc4ff);
+    transition:width .4s ease;
+  }
+
+  /* win overlay */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,45,60,.55);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .win-card{
+    background:var(--white); border-radius:26px; padding:32px 26px;
+    text-align:center; max-width:340px; box-shadow:0 20px 50px rgba(0,0,0,.3);
+    animation: popIn .4s ease;
+  }
+  @keyframes popIn{ from{transform:scale(.7); opacity:0;} to{transform:scale(1); opacity:1;} }
+  .win-card h2{font-family:'Baloo 2',sans-serif; font-size:26px; margin:6px 0; color:var(--ink);}
+  .win-stars{font-size:38px; letter-spacing:4px; margin:10px 0;}
+  .win-card p{color:var(--ink-soft); font-weight:600; margin-bottom:18px;}
+  .win-card button{
+    background:linear-gradient(135deg,#ffd166,#ff9f68);
+    border:none; border-radius:16px; padding:12px 26px;
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:16px;
+    color:#5a2a00; cursor:pointer; box-shadow:0 8px 18px rgba(255,159,104,.5);
+  }
+
+  footer{
+    text-align:center; color:var(--ink-soft); font-size:12px; padding:16px; font-weight:600;
+  }
+
+  @media (max-width:480px){
+    .card{width:88px;}
+    .card .emoji{font-size:32px;}
+    .basket{flex:1 1 100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="cloud c1"><svg width="90" height="34" viewBox="0 0 90 34"><ellipse cx="20" cy="20" rx="20" ry="14" fill="white"/><ellipse cx="45" cy="14" rx="24" ry="16" fill="white"/><ellipse cx="70" cy="20" rx="18" ry="12" fill="white"/></svg></div>
+<div class="cloud c2"><svg width="70" height="28" viewBox="0 0 70 28"><ellipse cx="16" cy="16" rx="16" ry="11" fill="white"/><ellipse cx="38" cy="11" rx="19" ry="13" fill="white"/><ellipse cx="58" cy="16" rx="14" ry="10" fill="white"/></svg></div>
+
+<div class="scoreboard"><span class="star">⭐</span><span id="scoreText">0 / 9</span></div>
+<button class="restart-btn" onclick="restartGame()">🔄 إعادة</button>
+
+<header>
+  <h1>🌍 كيف تتكيّف الحيوانات لتعيش؟</h1>
+  <p>اسحب... لا بل انقر على الحيوان، ثم انقر على السلة المناسبة لطريقة تكيّفه!</p>
+</header>
+
+<div class="mascot-row">
+  <div class="speech" id="speech">أهلًا! أنا حرباء 🦎 صديقك في اللعبة. ساعدني في تصنيف الحيوانات!</div>
+  <div class="mascot" id="mascot">🦎</div>
+</div>
+
+<main>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="board-label">🃏 بطاقات الحيوانات</div>
+  <div class="cards" id="cardsArea"></div>
+
+  <div class="baskets">
+    <div class="basket shape" data-cat="shape" onclick="tryDrop('shape')">
+      <span class="b-icon">🐾</span>
+      <div class="b-title">تكيّف بالشكل</div>
+      <div class="b-sub">شكل الجسم يساعده على العيش</div>
+      <div class="placed-list" id="list-shape"></div>
+    </div>
+    <div class="basket breath" data-cat="breath" onclick="tryDrop('breath')">
+      <span class="b-icon">💨</span>
+      <div class="b-title">تكيّف بالتنفس</div>
+      <div class="b-sub">طريقة أخذ الهواء أو الأكسجين</div>
+      <div class="placed-list" id="list-breath"></div>
+    </div>
+    <div class="basket move" data-cat="move" onclick="tryDrop('move')">
+      <span class="b-icon">🏃</span>
+      <div class="b-title">تكيّف بالحركة</div>
+      <div class="b-sub">طريقة الجري أو السباحة أو القفز</div>
+      <div class="placed-list" id="list-move"></div>
+    </div>
+  </div>
+</main>
+
+<footer>درس: تتكيّف لتعيش — الوحدة الأولى: بيئتي تدعمني — علوم الصف الثالث الأساسي</footer>
+
+<div class="overlay" id="overlay">
+  <div class="win-card">
+    <h2>🎉 أحسنت! أنهيت اللعبة</h2>
+    <div class="win-stars" id="winStars"></div>
+    <p id="winMsg">لقد فهمت كيف تتكيّف الحيوانات مع بيئتها!</p>
+    <button onclick="restartGame()">العب مرة أخرى</button>
+  </div>
+</div>
+
+<script>
+const animals = [
+  {id:1, name:"الدب القطبي", emoji:"🐻‍❄️", cat:"shape", fact:"فراؤه السميك يحميه من البرد الشديد!"},
+  {id:2, name:"الجمل", emoji:"🐫", cat:"shape", fact:"خُفّه العريض يساعده على السير في الرمال!"},
+  {id:3, name:"البطة", emoji:"🦆", cat:"shape", fact:"منقارها المسطح وأقدامها المكففة تساعدها على السباحة!"},
+  {id:4, name:"السمكة", emoji:"🐟", cat:"breath", fact:"تتنفس الأكسجين المنحل بالماء عبر الخياشيم!"},
+  {id:5, name:"السلحفاة البرية", emoji:"🐢", cat:"breath", fact:"تتنفس هواء الجو بواسطة الرئتين!"},
+  {id:6, name:"الشرغوف", emoji:"🐸", cat:"breath", fact:"يتنفس بالخياشيم أولًا، ثم يتحول للتنفس بالرئتين!"},
+  {id:7, name:"الأرنب البري", emoji:"🐇", cat:"move", fact:"أرجله الخلفية القوية تساعده على القفز والجري السريع!"},
+  {id:8, name:"الحصان", emoji:"🐎", cat:"move", fact:"حوافره القوية تساعده على الجري بسرعة كبيرة!"},
+  {id:9, name:"القرد", emoji:"🐒", cat:"move", fact:"أطرافه الطويلة المرنة تساعده على التنقل بين الأشجار!"},
+];
+
+let selectedId = null;
+let placedCount = 0;
+let wrongTries = 0;
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function renderCards(){
+  const area = document.getElementById('cardsArea');
+  area.innerHTML = '';
+  shuffle(animals.slice()).forEach(a=>{
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.id = 'card-'+a.id;
+    div.onclick = ()=> selectCard(a.id);
+    div.innerHTML = `<span class="emoji">${a.emoji}</span><span class="name">${a.name}</span>`;
+    area.appendChild(div);
+  });
+}
+
+function selectCard(id){
+  const el = document.getElementById('card-'+id);
+  if(!el || el.classList.contains('placed')) return;
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
+  if(selectedId === id){
+    selectedId = null;
+    setSpeech("اختر حيوانًا ثم انقر على السلة المناسبة له 🧐");
+    return;
+  }
+  selectedId = id;
+  el.classList.add('selected');
+  const a = animals.find(x=>x.id===id);
+  setSpeech(`اخترت "${a.name}"! إلى أي سلة يذهب برأيك؟`);
+}
+
+function tryDrop(cat){
+  if(selectedId === null){
+    setSpeech("انقر أولًا على بطاقة حيوان قبل اختيار السلة 😉");
+    return;
+  }
+  const a = animals.find(x=>x.id===selectedId);
+  const card = document.getElementById('card-'+selectedId);
+  const basketEl = document.querySelector(`.basket[data-cat="${cat}"]`);
+
+  if(a.cat === cat){
+    card.classList.add('placed');
+    document.getElementById('list-'+cat).innerHTML += `<span>${a.emoji}</span>`;
+    placedCount++;
+    updateProgress();
+    setMascot('happy');
+    setSpeech(`صحيح! 🎉 ${a.fact}`);
+    basketEl.classList.add('pulse');
+    setTimeout(()=>basketEl.classList.remove('pulse'), 500);
+    selectedId = null;
+    if(placedCount === animals.length){
+      setTimeout(showWin, 700);
+    }
+  } else {
+    wrongTries++;
+    setMascot('sad');
+    card.classList.add('wrong-shake');
+    setTimeout(()=>card.classList.remove('wrong-shake'), 450);
+    setSpeech("ليست هذه السلة الصحيحة، فكّر مرة أخرى! 🤔");
+  }
+}
+
+function setMascot(state){
+  const m = document.getElementById('mascot');
+  m.classList.remove('happy','sad');
+  void m.offsetWidth;
+  m.classList.add(state);
+}
+
+function setSpeech(text){
+  document.getElementById('speech').textContent = text;
+}
+
+function updateProgress(){
+  document.getElementById('scoreText').textContent = placedCount + ' / ' + animals.length;
+  document.getElementById('progressBar').style.width = (placedCount/animals.length*100) + '%';
+}
+
+function showWin(){
+  const stars = wrongTries === 0 ? '⭐⭐⭐' : (wrongTries <= 3 ? '⭐⭐' : '⭐');
+  document.getElementById('winStars').textContent = stars;
+  document.getElementById('winMsg').textContent =
+    wrongTries === 0 ? 'إجابات صحيحة كلها من أول محاولة! أنت عالِم صغير حقيقي 🔬' :
+    'أحسنت! لقد صنّفت كل الحيوانات بنجاح 🌟';
+  document.getElementById('overlay').classList.add('show');
+}
+
+function restartGame(){
+  placedCount = 0; wrongTries = 0; selectedId = null;
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('list-shape').innerHTML = '';
+  document.getElementById('list-breath').innerHTML = '';
+  document.getElementById('list-move').innerHTML = '';
+  updateProgress();
+  setSpeech("لنبدأ من جديد! انقر على أول حيوان 🦎");
+  renderCards();
+}
+
+renderCards();
+updateProgress();
+</script>
+</body>
+</html>
