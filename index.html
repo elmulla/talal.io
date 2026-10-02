@@ -237,6 +237,16 @@
   .t-row select{flex:0 0 auto; width:auto; min-width:92px; padding:8px 10px;}
   .t-row.ok{background:#DFF3E4; border-color:var(--forest);}
   .t-row.no{background:#FBE3E0; border-color:var(--coral);}
+  .t-row.ok::after, .t-row.no::after{font-size:20px; font-weight:800; flex:0 0 auto;}
+  .t-row.ok::after{content:'✔'; color:var(--forest);}
+  .t-row.no::after{content:'✘'; color:var(--coral);}
+  .t-fix{font-style:normal; color:var(--forest); font-size:13px;}
+  .t-choices .choice-btn{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .t-choices .choice-btn.correct::after{content:'✔'; font-size:20px;}
+  .t-choices .choice-btn.wrong::after{content:'✘'; font-size:20px;}
+  .t-choices .choice-btn:disabled{cursor:default;}
+  .t-pop{animation:tPop .45s ease;}
+  @keyframes tPop{0%{transform:scale(.85);}60%{transform:scale(1.06);}100%{transform:scale(1);}}
   .t-nav{display:flex; justify-content:space-between; gap:10px; margin-top:16px;}
   .t-result{background:#F3F8F6; border-radius:18px; padding:16px; margin-top:6px;}
   .t-big{font-family:'Baloo Bhaijaan 2',sans-serif; font-size:34px; color:var(--teal); font-weight:800; text-align:center; margin:4px 0;}
@@ -794,10 +804,10 @@ function updatePreview(){
 /* ---------- Tests: pre / formative / final (from the lesson analysis file, tables 14–16) ---------- */
 const TYPES4 = ['شكل','لون','تنفّس','حركة'];
 const preTest = [
-  {type:'open', q:'اكتب بكلماتك: ماذا يعني أن يتكيّف الحيوان مع البيئة التي يعيش فيها؟'},
+  {type:'open', q:'اكتب بكلماتك: ماذا يعني أن يتكيّف الحيوان مع البيئة التي يعيش فيها؟', key:'أن تكون لجسم الحيوان أو سلوكه صفات وطرائق تناسب بيئته وتساعده على العيش فيها.'},
   {type:'mc', q:'أيّ هذه الحيوانات يغطي جسمه فراء أبيض سميك يحميه من البرد؟', choices:['الجمل','الدب القطبي','الحرباء'], correct:1},
   {type:'mc', q:'تتنفّس السمكة داخل الماء بواسطة:', choices:['الرئتين','الزعانف','الخياشيم'], correct:2},
-  {type:'open', q:'اذكر حيوانين يساعد شكلُ جسمِ كلٍّ منهما على العيش في بيئته، واكتب الصفة التي في جسم كل منهما.'},
+  {type:'open', q:'اذكر حيوانين يساعد شكلُ جسمِ كلٍّ منهما على العيش في بيئته، واكتب الصفة التي في جسم كل منهما.', key:'مثل: الدب القطبي (فراء أبيض سميك)، الجمل (خف عريض)، الأرنب البري (أرجل خلفية قوية)، البطة (أقدام مكففة).'},
   {type:'mc', q:'تتنفّس السلحفاة البرية:', choices:['بالرئتين','بالخياشيم','بالزعانف'], correct:0},
   {type:'order', q:'رتّب الجمل الآتية بحسب حدوثها باختيار الأرقام (1، 2، 3):', items:['يتحوّل الشرغوف إلى ضفدع.','يعيش الشرغوف في الماء ويتنفّس بالخياشيم.','يتنفّس الضفدع بالرئتين.'], correct:[2,1,3]},
   {type:'mc', q:'عندما تشعر السلحفاة بالخطر فإنها:', choices:['تسبح بعيدًا','تغيّر لون جلدها','تختبئ داخل صدفتها'], correct:2},
@@ -808,11 +818,11 @@ const preTest = [
   {type:'mc', q:'تنتقل الحرباء إلى مكان لونه مختلف فيتغيّر لون جلدها. لماذا؟', choices:['لتتخفّى وتشبه لون ما حولها','لتسرع في الجري','لتتنفّس بسهولة'], correct:0},
   {type:'mc', q:'تفتح السمكة فمها وتغلقه باستمرار أثناء السباحة. ما علاقة ذلك بحياتها؟', choices:['تساعدها على الاختباء','تضمن لها استمرار عملية التنفّس','تساعدها على التقاط الطعام'], correct:1},
   {type:'classify', q:'اختر أمام كل عبارة نوع التكيّف (شكل / لون / تنفّس / حركة):', items:['للقرد أطراف طويلة مرنة','يتنفّس الضفدع بالرئتين','للسمكة زعانف وذيل مسطح','للبطة أقدام مكففة','تغيّر الحرباء لون جلدها'], correct:['شكل','تنفّس','حركة','شكل','لون'], min:4},
-  {type:'open', q:'اذكر حيوانًا من بيئتك المحلية، ووضّح كيف تساعده صفة في جسمه على العيش في بيئته.'},
-  {type:'open', q:'للحصان حوافر قوية وللجمل خفّ عريض، وكلاهما يمشي ويجري. حلّل: لماذا تختلف أقدام الحيوانين؟'},
-  {type:'open', q:'بيّن الفرق بين التكيّف عن طريق التنفّس والتكيّف عن طريق الشكل عند السلحفاة البرية.'},
-  {type:'open', q:'يتنقّل القرد بين الأشجار بأطرافه الطويلة المرنة. هل ترى أن ذلك يساعده على النجاة من الأخطار؟ اكتب رأيك مع السبب.'},
-  {type:'open', q:'تخيّل حيوانًا خياليًا يعيش في بيئة تقترحها أنت (قطبية، صحراوية، مائية...). ارسمه على ورقتك، ثم اكتب هنا البيئة وجملة توضّح كيف يساعده جسمه على العيش فيها.'},
+  {type:'open', q:'اذكر حيوانًا من بيئتك المحلية، ووضّح كيف تساعده صفة في جسمه على العيش في بيئته.', key:'مثل: الحمامة (جناحان للطيران)، الأغنام (صوف كثيف يقيها البرد).'},
+  {type:'open', q:'للحصان حوافر قوية وللجمل خفّ عريض، وكلاهما يمشي ويجري. حلّل: لماذا تختلف أقدام الحيوانين؟', key:'الجمل يعيش في رمال الصحراء فيحتاج خفًّا عريضًا لا يغوص في الرمل، والحصان يعيش في أرض صلبة فتساعده الحوافر القوية على الجري السريع.'},
+  {type:'open', q:'بيّن الفرق بين التكيّف عن طريق التنفّس والتكيّف عن طريق الشكل عند السلحفاة البرية.', key:'التنفّس: الرئتان تأخذان الهواء من الجو. الشكل: الصدفة الصلبة تحمي السلحفاة عند الاختباء.'},
+  {type:'open', q:'يتنقّل القرد بين الأشجار بأطرافه الطويلة المرنة. هل ترى أن ذلك يساعده على النجاة من الأخطار؟ اكتب رأيك مع السبب.', key:'نعم، لأنه يهرب بسرعة إلى أعالي الأشجار بعيدًا عن أعدائه (المهم أن تذكر سببًا لرأيك).'},
+  {type:'open', q:'تخيّل حيوانًا خياليًا يعيش في بيئة تقترحها أنت (قطبية، صحراوية، مائية...). ارسمه على ورقتك، ثم اكتب هنا البيئة وجملة توضّح كيف يساعده جسمه على العيش فيها.', key:'حدّد البيئة، واذكر صفة واحدة على الأقل في جسم حيوانك، واربطها بفائدتها في تلك البيئة.'},
 ];
 const midTest = [
   {type:'mc', q:'التكيّف هو:', choices:['أن يعيش الحيوان وحده','أن تكون للحيوان صفات وطرائق تناسب البيئة التي يعيش فيها','أن ينتقل الحيوان من بيئة إلى أخرى'], correct:1, why:'التكيّف: صفات وطرائق في الحيوان تناسب بيئته.'},
@@ -825,10 +835,10 @@ const midTest = [
   {type:'classify', q:'صنّف العبارات الآتية باختيار نوع التكيّف (شكل / لون / تنفّس / حركة):', items:['للقرد أطراف طويلة مرنة','تتنفّس السلحفاة البرية بالرئتين','تتحرك السمكة بزعانفها وذيلها المسطح'], correct:['شكل','تنفّس','حركة'], min:3},
 ];
 const finalTest = [
-  {type:'open', q:'اشرح بأسلوبك معنى (التكيّف) عند الحيوانات.'},
+  {type:'open', q:'اشرح بأسلوبك معنى (التكيّف) عند الحيوانات.', key:'أن تكون لجسم الحيوان أو سلوكه صفات وطرائق تناسب بيئته وتساعده على العيش فيها.'},
   {type:'mc', q:'أيّ الحيوانات الآتية يقيه فراؤه الأبيض السميك من البرد الشديد؟', choices:['البطة','الجمل','الدب القطبي'], correct:2},
   {type:'mc', q:'ما اسم العضو الذي تتنفّس به السمكة داخل الماء؟', choices:['الخياشيم','الرئتان','الزعانف'], correct:0},
-  {type:'open', q:'اكتب اسم حيوانين يساعد شكلُ جسمِ كلٍّ منهما على التكيّف مع بيئته، مع ذكر الصفة التي تساعد كلًّا منهما.'},
+  {type:'open', q:'اكتب اسم حيوانين يساعد شكلُ جسمِ كلٍّ منهما على التكيّف مع بيئته، مع ذكر الصفة التي تساعد كلًّا منهما.', key:'مثل: الدب القطبي (فراء أبيض سميك)، الجمل (خف عريض)، الأرنب البري (أرجل خلفية قوية)، العصفور (منقار صغير مدبب).'},
   {type:'mc', q:'ما العضو الذي تستخدمه السلحفاة البرية في التنفّس؟', choices:['الخياشيم','الزعانف','الرئتان'], correct:2},
   {type:'order', q:'رتّب الجمل الآتية لتبيّن كيف يتنفّس الشرغوف أثناء نموّه إلى ضفدع (اختر 1، 2، 3):', items:['يتنفّس بالرئتين بعد أن يصبح ضفدعًا.','يتنفّس بالخياشيم وهو في الماء.','يتحوّل الشرغوف إلى ضفدع.'], correct:[3,1,2]},
   {type:'mc', q:'ما السلوك الذي تقوم به السلحفاة عندما تشعر بخطر؟', choices:['تنكمش وتختبئ داخل صدفتها','تركض بسرعة','تغيّر لون جلدها'], correct:0},
@@ -839,20 +849,20 @@ const finalTest = [
   {type:'mc', q:'تقف الحرباء على غصن أخضر فيصبح لون جلدها أخضر. لماذا تفعل ذلك؟', choices:['لتسبح بسرعة','لتتخفّى فلا يراها الأعداء','لتتنفّس بسهولة'], correct:1},
   {type:'mc', q:'لماذا تفتح السمكة فمها وتغلقه باستمرار أثناء السباحة؟', choices:['لتتحرك إلى الأمام','لتلتقط الطعام','لتضمن استمرار عملية التنفّس'], correct:2},
   {type:'classify', q:'اختر أمام كل عبارة نوع التكيّف (شكل / لون / تنفّس / حركة):', items:['للحصان حوافر قوية','يتنفّس الضفدع بالرئتين','تتحرك السمكة بزعانفها وذيلها المسطح','للقرد أطراف طويلة مرنة','تغيّر الحرباء لون جلدها'], correct:['شكل','تنفّس','حركة','شكل','لون'], min:4},
-  {type:'open', q:'اذكر مثالًا لحيوان من بيئتك المحلية لم يُذكر في الدرس، ووضّح كيف تساعده صفة في جسمه على العيش في بيئته.'},
-  {type:'open', q:'للبطة أقدام مكففة وللدجاجة أصابع منفصلة. حلّل: لماذا تختلف أقدامهما؟'},
-  {type:'open', q:'بيّن الفرق بين التكيّف عن طريق التنفّس والتكيّف عن طريق الحركة عند السمكة.'},
-  {type:'open', q:'يجري الحصان بسرعة بفضل حوافره القوية. هل ترى أن ذلك وسيلة ناجحة لنجاته من الأخطار؟ اكتب رأيك مع السبب.'},
-  {type:'open', q:'تخيّل حيوانًا خياليًا يعيش في بيئة تقترحها أنت (قطبية، صحراوية، مائية...). ارسمه على ورقتك، ثم اكتب هنا البيئة وجملة توضّح كيف يساعده جسمه على التكيّف معها.'},
+  {type:'open', q:'اذكر مثالًا لحيوان من بيئتك المحلية لم يُذكر في الدرس، ووضّح كيف تساعده صفة في جسمه على العيش في بيئته.', key:'مثل: الحمامة (جناحان للطيران)، الأغنام (صوف كثيف يقيها البرد).'},
+  {type:'open', q:'للبطة أقدام مكففة وللدجاجة أصابع منفصلة. حلّل: لماذا تختلف أقدامهما؟', key:'البطة تعيش قرب الماء وتسبح فأقدامها المكففة تدفع الماء، والدجاجة تعيش على اليابسة وتمشي وتنبش التراب بأصابعها.'},
+  {type:'open', q:'بيّن الفرق بين التكيّف عن طريق التنفّس والتكيّف عن طريق الحركة عند السمكة.', key:'التنفّس: الخياشيم تأخذ الأكسجين من الماء. الحركة: الزعانف والذيل المسطح تحرّك السمكة في الماء.'},
+  {type:'open', q:'يجري الحصان بسرعة بفضل حوافره القوية. هل ترى أن ذلك وسيلة ناجحة لنجاته من الأخطار؟ اكتب رأيك مع السبب.', key:'نعم، لأنه يستطيع الهرب من أعدائه بسرعة (المهم أن تذكر سببًا لرأيك).'},
+  {type:'open', q:'تخيّل حيوانًا خياليًا يعيش في بيئة تقترحها أنت (قطبية، صحراوية، مائية...). ارسمه على ورقتك، ثم اكتب هنا البيئة وجملة توضّح كيف يساعده جسمه على التكيّف معها.', key:'حدّد البيئة، واذكر صفة واحدة على الأقل في جسم حيوانك، واربطها بفائدتها في تلك البيئة.'},
 ];
 
 const tests = {
-  pre:  {title:'الاختبار القبلي', items:preTest, minutes:30, formative:false, nextBtn:'preNext',
-         intro:'نريد أن نعرف ماذا تعرف عن الحيوانات وبيئاتها قبل أن نبدأ. لا بأس إن لم تعرف بعض الإجابات! أجب بما تعرفه.'},
+  pre:  {title:'الاختبار القبلي', items:preTest, minutes:30, formative:true, nextBtn:'preNext',
+         intro:'نريد أن نعرف ماذا تعرف عن الحيوانات وبيئاتها قبل أن نبدأ. لا بأس إن لم تعرف بعض الإجابات! أجب بما تعرفه، وستعرف بعد كل سؤال إن كانت إجابتك صحيحة.'},
   mid:  {title:'الاختبار المرحلي', items:midTest, minutes:10, formative:true, nextBtn:'midNext',
          intro:'لنتأكد مما تعلّمناه حتى الآن عن طرائق التكيّف. ستعرف بعد كل سؤال إن كانت إجابتك صحيحة.'},
-  final:{title:'الاختبار الختامي', items:finalTest, minutes:30, formative:false, nextBtn:'finalNext',
-         intro:'أنهيت رحلتك! أجب عن الأسئلة الآتية لتعرف ماذا تعلّمت.'},
+  final:{title:'الاختبار الختامي', items:finalTest, minutes:30, formative:true, nextBtn:'finalNext',
+         intro:'أنهيت رحلتك! أجب عن الأسئلة الآتية لتعرف ماذا تعلّمت، وستعرف بعد كل سؤال إن كانت إجابتك صحيحة.'},
 };
 let studentName = '';
 
@@ -905,7 +915,7 @@ function testItem(k){
   lessonNav(k, false);
   let body = '';
   if(it.type==='mc'){
-    body = `<div class="choice-grid">${it.choices.map((c,ci)=>{
+    body = `<div class="choice-grid t-choices">${it.choices.map((c,ci)=>{
       let cls = 'choice-btn';
       if(locked){ if(ci===it.correct) cls+=' correct'; else if(ci===a) cls+=' wrong'; }
       else if(ci===a) cls+=' picked';
@@ -919,16 +929,17 @@ function testItem(k){
       const cur = a ? a[ri] : null;
       let cls = 't-row';
       if(locked) cls += cur===it.correct[ri] ? ' ok' : ' no';
-      return `<div class="${cls}"><span>${s}</span><select class="field" ${locked?'disabled':''} onchange="pickRow('${k}',${ri},this.value)">
+      const fix = locked && cur!==it.correct[ri] ? ` <em class="t-fix">(الصحيح: ${it.correct[ri]})</em>` : '';
+      return `<div class="${cls}"><span>${s}${fix}</span><select class="field" ${locked?'disabled':''} onchange="pickRow('${k}',${ri},this.value)">
         <option value="">اختر</option>${opts.map(o=>`<option value="${o}" ${String(cur)===String(o)?'selected':''}>${o}</option>`).join('')}</select></div>`;
     }).join('');
   }
   let fb = '';
   if(locked){
     const g = gradeItem(it, a);
-    if(it.type==='open') fb = `<div class="feedback-box show good">💡 إجابة نموذجية: ${it.key}</div>`;
-    else if(g) fb = `<div class="feedback-box show good">✅ إجابة صحيحة! ${it.why||''}</div>`;
-    else fb = `<div class="feedback-box show bad">❌ ليست صحيحة. ${it.why || 'الإجابة الصحيحة: '+it.correct.join('، ')}</div>`;
+    if(it.type==='open') fb = isAnswered(it, a) ? `<div class="feedback-box show good t-pop">👏 ${t.praise} قارن إجابتك بالإجابة النموذجية: ${it.key}</div>` : `<div class="feedback-box show bad">💡 الإجابة النموذجية: ${it.key}</div>`;
+    else if(g) fb = `<div class="feedback-box show good t-pop">🌟 ${t.praise} ${it.why||''}</div>`;
+    else fb = `<div class="feedback-box show bad">❌ إجابة خاطئة. ${it.why || 'الإجابة الصحيحة: '+(it.type==='mc' ? it.choices[it.correct] : it.correct.join('، '))}</div>`;
   }
   const last = i===t.items.length-1;
   let nextBtn;
@@ -945,7 +956,7 @@ function testItem(k){
 function pickMC(k, ci){
   const t = tests[k];
   t.answers[t.idx] = ci;
-  if(t.formative){ t.checked[t.idx] = true; feedbackSound(gradeItem(t.items[t.idx], ci)); }
+  if(t.formative){ t.checked[t.idx] = true; t.praise = GOOD_WORDS[Math.floor(Math.random()*GOOD_WORDS.length)]; feedbackSound(gradeItem(t.items[t.idx], ci)); }
   testItem(k);
 }
 function pickRow(k, ri, v){
@@ -955,10 +966,11 @@ function pickRow(k, ri, v){
 }
 function checkItem(k){
   const t = tests[k], it = t.items[t.idx];
-  if(!isAnswered(it, t.answers[t.idx])){ alert('أجب عن السؤال أولًا 🙂'); return; }
+  if(it.type!=='open' && !isAnswered(it, t.answers[t.idx])){ alert('أجب عن السؤال أولًا 🙂'); return; }
   t.checked[t.idx] = true;
+  t.praise = GOOD_WORDS[Math.floor(Math.random()*GOOD_WORDS.length)];
   const g = gradeItem(it, t.answers[t.idx]);
-  feedbackSound(g===null ? true : g);
+  feedbackSound(g===null ? isAnswered(it, t.answers[t.idx]) : g);
   testItem(k);
 }
 function moveItem(k, d){ tests[k].idx += d; testItem(k); }
